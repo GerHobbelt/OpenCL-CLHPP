@@ -1,5 +1,14 @@
 cmake_minimum_required(VERSION 3.1)
 
+if(HUNTER_ENABLED)
+  include("cmake/HunterGate.cmake")
+  HunterGate(
+    URL "https://github.com/cpp-pm/hunter/archive/cf0a199e3b0c610866880bede849811bdddee6dd.tar.gz"
+    SHA1 "256f610e15f35c08a4650ef14153ac86dd4687ff"
+    FILEPATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/HunterConfig.cmake
+  )
+endif()
+
 project(OpenCLHeadersCpp
   VERSION 3.0
   LANGUAGES CXX # Ideally should be NONE, but GNUInstallDirs detects platform arch using try_compile
@@ -7,8 +16,8 @@ project(OpenCLHeadersCpp
 )
 enable_testing()
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#set(CMAKE_CXX_STANDARD 11)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_DOCS "Build Documentation" ON)
 option(BUILD_EXAMPLES "Build Examples" ON)
@@ -47,7 +56,12 @@ if(EXISTS "${OPENCL_CLHPP_HEADERS_DIR}/CL/cl.h")
   endif()
 else()
   if(NOT TARGET OpenCL::Headers)
-    find_package(OpenCLHeaders REQUIRED)
+    if(HUNTER_ENABLED)
+      hunter_add_package(OpenCL-Headers)
+      find_package(OpenCLHeaders CONFIG REQUIRED)
+    else()
+      find_package(OpenCLHeaders REQUIRED)
+    endif()
   endif()
 endif()
 if(BUILD_EXAMPLES OR CLHPP_BUILD_TESTS)
@@ -86,7 +100,7 @@ export(
 )
 file(
   WRITE ${PROJECT_BINARY_DIR}/OpenCLHeadersCpp/OpenCLHeadersCppConfig.cmake
-  "include(\"\${CMAKE_CURRENT_LIST_DIR}/OpenCLHeadersCppTargets.cmake\")"
+  "include(CMakeFindDependencyMacro)\nfind_dependency(OpenCLHeaders CONFIG)\ninclude(\"\${CMAKE_CURRENT_LIST_DIR}/OpenCLHeadersCppTargets.cmake\")"
 )
 
 set(config_package_location ${CMAKE_INSTALL_DATADIR}/cmake/OpenCLHeadersCpp)
