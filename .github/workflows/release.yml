@@ -33,7 +33,7 @@ jobs:
         -D DEBIAN_DISTROSERIES=${{ env.distroseries }}
         -D DEBIAN_PACKAGE_MAINTAINER="${{ vars.DEB_MAINTAINER }}"
         -D DEBIAN_VERSION_SUFFIX=${{ vars.DEB_VERSION_SUFFIX }}
-        -P $GITHUB_WORKSPACE/OpenCL-Headers*/cmake/DebSourcePkg.cmake
+        -P $GITHUB_WORKSPACE/OpenCL-CLHPP*/cmake/DebSourcePkg.cmake
 
     - name: List packaging scripts
       shell: bash
