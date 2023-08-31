@@ -37,12 +37,12 @@ jobs:
 
     - name: List packaging scripts
       shell: bash
-      run: cat $GITHUB_WORKSPACE/OpenCL-Headers*/debian/*
+      run: cat $GITHUB_WORKSPACE/OpenCL-CLHPP*/debian/*
 
     - name: Build source package
       shell: bash
       run: |
-        cd $GITHUB_WORKSPACE/OpenCL-Headers*/
+        cd $GITHUB_WORKSPACE/OpenCL-CLHPP*/
         debuild -S -sa
 
     - name: Push source package to the PPA
