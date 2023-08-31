@@ -1,6 +1,6 @@
 set(CPACK_PACKAGE_VENDOR "khronos")
 
-set(CPACK_DEBIAN_DESCRIPTION "C++ headers for OpenCL development
+set(CPACK_PACKAGE_DESCRIPTION "C++ headers for OpenCL development
  C++ headers for OpenCL development
  OpenCL (Open Computing Language) is a multi-vendor open standard for
  general-purpose parallel programming of heterogeneous systems that include
