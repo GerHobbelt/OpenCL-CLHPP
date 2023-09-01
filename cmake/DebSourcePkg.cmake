@@ -103,6 +103,9 @@ file(WRITE "${DEB_SOURCE_PKG_DIR}/rules"
 
 override_dh_auto_configure:
 \tdh_auto_configure -- -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF
+
+override_dh_auto_build:
+\tdh_auto_build -- all docs
 ")
 # Write installed file list for docs package
 file(WRITE "${DEB_SOURCE_PKG_DIR}/${DEB_DOC_PKG_NAME}.install"
