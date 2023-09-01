@@ -74,16 +74,16 @@ file(WRITE "${DEB_SOURCE_PKG_DIR}/control"
 Section: devel
 Priority: optional
 Maintainer: ${DEBIAN_PACKAGE_MAINTAINER}
-Build-Depends: cmake, debhelper-compat (=13), doxygen, ${DEB_C_HEADERS_PKG_NAME} (>= ${PACKAGE_VERSION_REVISION})
+Build-Depends: cmake, debhelper-compat (=13), doxygen, ${CPACK_DEBIAN_PACKAGE_DEPENDS}
 Rules-Requires-Root: no
 Homepage: ${CPACK_DEBIAN_PACKAGE_HOMEPAGE}
 Standards-Version: 4.6.2
 
 Package: ${DEBIAN_PACKAGE_NAME}
 Architecture: ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}
-Depends: ${DEB_C_HEADERS_PKG_NAME} (>= ${PACKAGE_VERSION_REVISION})
-Breaks: ${DEB_META_PKG_NAME} (<< ${PACKAGE_VERSION_REVISION})
-Replaces: ${DEB_META_PKG_NAME} (<< ${PACKAGE_VERSION_REVISION})
+Depends: ${CPACK_DEBIAN_PACKAGE_DEPENDS}
+Breaks: ${CPACK_DEBIAN_PACKAGE_BREAKS}
+Replaces: ${CPACK_DEBIAN_PACKAGE_REPLACES}
 Description: ${CPACK_PACKAGE_DESCRIPTION}
 
 Package: ${DEB_DOC_PKG_NAME}

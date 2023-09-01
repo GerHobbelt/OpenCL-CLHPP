@@ -43,6 +43,8 @@ set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "all")
 
 # Dependencies
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "opencl-c-headers (>= ${CPACK_DEBIAN_PACKAGE_VERSION})")
+set(CPACK_DEBIAN_PACKAGE_BREAKS "opencl-headers (<< ${CPACK_DEBIAN_PACKAGE_VERSION})")
+set(CPACK_DEBIAN_PACKAGE_REPLACES "opencl-headers (<< ${CPACK_DEBIAN_PACKAGE_VERSION})")
 
 # Package file name in deb format:
 # <PackageName>_<VersionNumber>-<DebianRevisionNumber>_<DebianArchitecture>.deb
