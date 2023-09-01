@@ -15,6 +15,15 @@ cmake_minimum_required(VERSION 3.21) # file(COPY_FILE) is added in CMake 3.21
 set(DEB_SOURCE_PKG_NAME "khronos-opencl-clhpp")
 set(DEB_C_HEADERS_PKG_NAME "opencl-c-headers")
 set(DEB_META_PKG_NAME "opencl-headers")
+set(DEB_DOC_PKG_NAME "opencl-clhpp-headers-doc")
+set(DEB_DOC_PKG_DESCRIPTION "documentation for C++ OpenCL headers
+ OpenCL (Open Computing Language) is a multi-vendor open standard for
+ general-purpose parallel programming of heterogeneous systems that include
+ CPUs, GPUs and other processors.
+ .
+ This package provides the documentation of the C++ development header files
+ for the OpenCL API as published by The Khronos Group Inc.
+")
 
 if(NOT DEFINED DEBIAN_PACKAGE_MAINTAINER)
     message(FATAL_ERROR "DEBIAN_PACKAGE_MAINTAINER is not set")
@@ -60,7 +69,7 @@ file(WRITE "${DEB_SOURCE_PKG_DIR}/control"
 Section: devel
 Priority: optional
 Maintainer: ${DEBIAN_PACKAGE_MAINTAINER}
-Build-Depends: cmake, debhelper-compat (=13), ${DEB_C_HEADERS_PKG_NAME} (>= ${PACKAGE_VERSION_REVISION})
+Build-Depends: cmake, debhelper-compat (=13), doxygen, ${DEB_C_HEADERS_PKG_NAME} (>= ${PACKAGE_VERSION_REVISION})
 Rules-Requires-Root: no
 Homepage: ${CPACK_DEBIAN_PACKAGE_HOMEPAGE}
 Standards-Version: 4.6.2
@@ -71,6 +80,10 @@ Depends: ${DEB_C_HEADERS_PKG_NAME} (>= ${PACKAGE_VERSION_REVISION})
 Breaks: ${DEB_META_PKG_NAME} (<< ${PACKAGE_VERSION_REVISION})
 Replaces: ${DEB_META_PKG_NAME} (<< ${PACKAGE_VERSION_REVISION})
 Description: ${CPACK_PACKAGE_DESCRIPTION}
+
+Package: ${DEB_DOC_PKG_NAME}
+Architecture: all
+Description: ${DEB_DOC_PKG_DESCRIPTION}
 "
 )
 # Write debian/changelog
@@ -89,8 +102,13 @@ file(WRITE "${DEB_SOURCE_PKG_DIR}/rules"
 \tdh $@
 
 override_dh_auto_configure:
-\tdh_auto_configure -- -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF -DBUILD_DOCS=OFF
+\tdh_auto_configure -- -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF
 ")
+# Write installed file list for docs package
+file(WRITE "${DEB_SOURCE_PKG_DIR}/${DEB_DOC_PKG_NAME}.install"
+"obj-*/docs/html   usr/share/doc/opencl-clhpp-headers/
+"
+)
 
 if(DEFINED ORIG_ARCHIVE)
     # Copy the passed orig.tar.gz file. The target filename is deduced from the version number, as expected by debuild
