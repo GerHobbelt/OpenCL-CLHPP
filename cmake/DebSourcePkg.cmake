@@ -107,11 +107,30 @@ override_dh_auto_configure:
 override_dh_auto_build:
 \tdh_auto_build -- all docs
 ")
+# Write installed file list for headers package
+file(WRITE "${DEB_SOURCE_PKG_DIR}/${DEBIAN_PACKAGE_NAME}.install"
+"usr/include
+usr/share
+"
+)
 # Write installed file list for docs package
 file(WRITE "${DEB_SOURCE_PKG_DIR}/${DEB_DOC_PKG_NAME}.install"
 "obj-*/docs/html   usr/share/doc/opencl-clhpp-headers/
 "
 )
+# Write doc base file
+file(WRITE "${DEB_SOURCE_PKG_DIR}/${DEB_DOC_PKG_NAME}.doc-base"
+"Document: ${DEBIAN_PACKAGE_NAME}
+Title: OpenCL C++ Bindings Documentation
+Author: The Khronos Group Inc.
+Abstract: This manual describes the OpenCL C++ Bindings
+ as provided by The Khronos Group Inc.
+Section: Programming/C++
+
+Format: HTML
+Index: /usr/share/doc/${DEBIAN_PACKAGE_NAME}/html/index.html
+Files: /usr/share/doc/${DEBIAN_PACKAGE_NAME}/html/*.html
+")
 
 if(DEFINED ORIG_ARCHIVE)
     # Copy the passed orig.tar.gz file. The target filename is deduced from the version number, as expected by debuild
