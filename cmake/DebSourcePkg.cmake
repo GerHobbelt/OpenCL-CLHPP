@@ -81,6 +81,7 @@ Standards-Version: 4.6.2
 
 Package: ${DEBIAN_PACKAGE_NAME}
 Architecture: ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}
+Multi-Arch: foreign
 Depends: ${CPACK_DEBIAN_PACKAGE_DEPENDS}
 Breaks: ${CPACK_DEBIAN_PACKAGE_BREAKS}
 Replaces: ${CPACK_DEBIAN_PACKAGE_REPLACES}
@@ -88,6 +89,7 @@ Description: ${CPACK_PACKAGE_DESCRIPTION}
 
 Package: ${DEB_DOC_PKG_NAME}
 Architecture: all
+Multi-Arch: foreign
 Description: ${DEB_DOC_PKG_DESCRIPTION}
 "
 )
