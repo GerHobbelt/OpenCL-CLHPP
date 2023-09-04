@@ -35,6 +35,7 @@ jobs:
         -S $GITHUB_WORKSPACE/OpenCL-CLHPP*
         -B $GITHUB_WORKSPACE/../build
         -D CMAKE_BUILD_TYPE=Release
+        -D CMAKE_INSTALL_PREFIX=/usr
         -D BUILD_TESTING=OFF
         -D BUILD_EXAMPLES=OFF
         -D BUILD_DOCS=OFF
