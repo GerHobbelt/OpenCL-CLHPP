@@ -39,7 +39,7 @@ jobs:
         -D BUILD_EXAMPLES=OFF
         -D BUILD_DOCS=OFF
         -D LATEST_RELEASE_VERSION=$GITHUB_REF_NAME
-        -D DEBIAN_PACKAGE_MAINTAINER="${{ vars.DEB_MAINTAINER }}"
+        -D CPACK_DEBIAN_PACKAGE_MAINTAINER="${{ vars.DEB_MAINTAINER }}"
         -D DEBIAN_VERSION_SUFFIX=${{ vars.DEB_VERSION_SUFFIX }}
 
     - name: Generate packaging scripts
