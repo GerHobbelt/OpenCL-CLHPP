@@ -3,25 +3,12 @@ name: Presubmit
 on: [push, pull_request]
 
 jobs:
-  get-branch:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get working branch
-        id: get-branch
-        run: |
-          if [[ ${{ github.event_name }} == "push" ]]; then
-            echo "branch=main" >> $GITHUB_OUTPUT
-          else
-            echo "branch=${{ github.base_ref }}" >> $GITHUB_OUTPUT
-          fi ;
-          echo $GITHUB_OUTPUT
-    outputs:
-      branch: ${{ steps.get-branch.outputs.branch }}
-
   format:
     name: Code formatting
     runs-on: ubuntu-latest
-    needs: get-branch
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v3
         with:
@@ -30,11 +17,16 @@ jobs:
       - name: Install clang-format
         run: sudo apt-get install clang-format
       - name: Check format
-        run: $GITHUB_WORKSPACE/scripts/check-format.sh origin/${{ needs.get-branch.outputs.branch }} --binary clang-format
+        run: $GITHUB_WORKSPACE/scripts/check-format.sh
+          origin/`if [[ "${{ github.event_name }}" == "push" ]]; then echo "main"; else echo "${{ github.base_ref }}"; fi`
+          --binary clang-format
 
   linux:
     runs-on: ubuntu-latest
     needs: format
+    defaults:
+      run:
+        shell: bash
     strategy:
       matrix:
         CMAKE: [3.26.4]
@@ -120,7 +112,6 @@ jobs:
 
     steps:
     - name: Install system CMake
-      shell: bash
       if: ${{matrix.CMAKE}} == 'system'
       run: apt-get update -qq && apt-get install -y cmake &&
         echo "CMAKE_EXE=cmake" >> "$GITHUB_ENV" &&
@@ -184,7 +175,6 @@ jobs:
         --parallel `nproc`
 
     - name: Configure
-      shell: bash
       run: $CMAKE_EXE
         -G "${{matrix.CONF.GEN}}"
         -D BUILD_TESTING=ON
@@ -199,7 +189,6 @@ jobs:
         -B $GITHUB_WORKSPACE/build
 
     - name: Build
-      shell: bash
       run: if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]];
         then
           $CMAKE_EXE --build $GITHUB_WORKSPACE/build --config ${{matrix.CONF.CONFIG}} --parallel `nproc`;
@@ -209,7 +198,6 @@ jobs:
         fi
 
     - name: Test
-      shell: bash
       working-directory: ${{runner.workspace}}/OpenCL-CLHPP/build
       run: if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]];
         then
@@ -220,7 +208,6 @@ jobs:
         fi
 
     - name: Package DEB
-      shell: bash
       run: $CPACK_EXE
         --config "$GITHUB_WORKSPACE/build/CPackConfig.cmake"
         -G DEB
@@ -228,7 +215,6 @@ jobs:
         -B "$GITHUB_WORKSPACE/package-deb"
 
     - name: Consume (DEB)
-      shell: bash
       run: dpkg -i $GITHUB_WORKSPACE/external/OpenCL-Headers/package-deb/*.deb &&
         dpkg -i $GITHUB_WORKSPACE/package-deb/*.deb &&
         $CMAKE_EXE
@@ -248,26 +234,24 @@ jobs:
         fi
 
     - name: Test pkg-config (DEB)
-      shell: bash
       # /usr/include is already on the include search path,
       # we don't expect any output
       run: |
+        # First check if OpenCL-Headers is locatable
         pkg-config OpenCL-CLHPP --cflags
+        # Then check if the output is empty
         if [[ "$(pkg-config OpenCL-CLHPP --cflags)" ]];
         then
           exit 1;
         fi;
 
     - name: Uninstall (DEB)
-      shell: bash
       run: apt-get remove -y opencl-clhpp-headers
 
     - name: Test install
-      shell: bash
       run: $CMAKE_EXE --build $GITHUB_WORKSPACE/build --target install --config ${{matrix.CONF.CONFIG}} -- -j`nproc`;
 
     - name: Consume (install)
-      shell: bash
       run: $CMAKE_EXE
         -G "${{matrix.CONF.GEN}}"
         `if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]]; then echo "-D CMAKE_BUILD_TYPE=${{matrix.CONF.CONFIG}}"; fi`
@@ -283,13 +267,15 @@ jobs:
         fi
 
     - name: Test pkg-config (install)
-      shell: bash
       run: PKG_CONFIG_PATH=$GITHUB_WORKSPACE/install/share/pkgconfig
         pkg-config OpenCL-CLHPP --cflags | grep -q "\-I$GITHUB_WORKSPACE/install/include"
 
   windows:
     runs-on: windows-latest
     needs: format
+    defaults:
+      run:
+        shell: pwsh
     strategy:
       matrix:
         VER: [v141, v142, v143, clangcl]
@@ -327,7 +313,6 @@ jobs:
 
     - name: Install Ninja
       if: matrix.GEN == 'Ninja Multi-Config' && steps.ninja-install.outputs.cache-hit != 'true'
-      shell: pwsh
       run: |
         Invoke-WebRequest ${env:NINJA_URL} -OutFile ~\Downloads\ninja-win.zip
         Expand-Archive ~\Downloads\ninja-win.zip -DestinationPath ${env:NINJA_ROOT}\
@@ -352,7 +337,6 @@ jobs:
 
     - name: Build & install OpenCL-Headers (MSBuild)
       if: matrix.GEN == 'Visual Studio 17 2022'
-      shell: pwsh
       run: |
         $BIN = if('${{matrix.BIN}}' -eq 'x86') {'Win32'} else {'x64'}
         & cmake `
@@ -375,7 +359,6 @@ jobs:
 
     - name: Build & install OpenCL-Headers (Ninja Multi-Config)
       if: matrix.GEN == 'Ninja Multi-Config'
-      shell: pwsh
       run: |
         $VER = switch ('${{matrix.VER}}') { `
           'v141' {'14.1'} `
@@ -399,7 +382,6 @@ jobs:
 
     - name: Build & install OpenCL-ICD-Loader (MSBuild)
       if: matrix.GEN == 'Visual Studio 17 2022'
-      shell: pwsh
       run: |
         $BIN = if('${{matrix.BIN}}' -eq 'x86') {'Win32'} else {'x64'}
         & cmake `
@@ -423,7 +405,6 @@ jobs:
 
     - name: Build & install OpenCL-ICD-Loader (Ninja Multi-Config)
       if: matrix.GEN == 'Ninja Multi-Config'
-      shell: pwsh
       run: |
         $VER = switch ('${{matrix.VER}}') { `
           'v141' {'14.1'} `
@@ -448,7 +429,6 @@ jobs:
 
     - name: Configure (MSBuild)
       if: matrix.GEN == 'Visual Studio 17 2022'
-      shell: pwsh
       run: |
         $BIN = if('${{matrix.BIN}}' -eq 'x86') {'Win32'} else {'x64'}
         $BUILD_TESTS = if('clangcl' -eq 'clangcl') {'OFF'} else {'ON'}
@@ -467,7 +447,6 @@ jobs:
 
     - name: Configure (Ninja Multi-Config)
       if: matrix.GEN == 'Ninja Multi-Config'
-      shell: pwsh
       run: |
         $VER = switch ('${{matrix.VER}}') { `
           'v141' {'14.1'} `
@@ -489,7 +468,6 @@ jobs:
 
     - name: Build (MSBuild)
       if: matrix.GEN == 'Visual Studio 17 2022'
-      shell: pwsh
       run: |
         foreach ($Config in 'Release','Debug') { `
           & cmake `
@@ -503,7 +481,6 @@ jobs:
 
     - name: Build (Ninja)
       if: matrix.GEN == 'Ninja Multi-Config'
-      shell: pwsh
       run: |
         $VER = switch ('${{matrix.VER}}') { `
           'v141' {'14.1'} `
@@ -520,7 +497,6 @@ jobs:
         }
 
     - name: Test
-      shell: pwsh
       run: |
         foreach ($Config in 'Release','Debug') { `
           & ctest `
@@ -531,7 +507,6 @@ jobs:
         }
 
     - name: Install
-      shell: pwsh
       run: |
         & cmake `
           --install "${env:GITHUB_WORKSPACE}\build" `
@@ -539,7 +514,6 @@ jobs:
           --config Release
 
     - name: "Consume (MSBuild standalone): Configure/Build/Test"
-      shell: pwsh
       run: |
         $BIN = if('${{matrix.BIN}}' -eq 'x86') {'Win32'} else {'x64'}
         & cmake `
@@ -564,7 +538,6 @@ jobs:
         }
 
     - name: "Consume (Ninja-Multi-Config standalone): Configure/Build/Test"
-      shell: pwsh
       run: |
         $VER = switch ('${{matrix.VER}}') { `
           'v141' {'14.1'} `
@@ -592,13 +565,11 @@ jobs:
         }
 
     - name: Consume (Emulate SDK presence)
-      shell: pwsh
       run: |
         New-Item -Type Directory -Path ${env:GITHUB_WORKSPACE}\install\share\cmake\OpenCL
         New-Item -Type File -Path ${env:GITHUB_WORKSPACE}\install\share\cmake\OpenCL\OpenCLConfig.cmake -Value 'include("${env:GITHUB_WORKSPACE}\external\OpenCL-Headers\install\share\cmake\OpenCLHeaders\OpenCLHeadersTargets.cmake")\ninclude("${env:GITHUB_WORKSPACE}\external\OpenCL-ICD-Loader\install\share\cmake\OpenCLICDLoader\OpenCLICDLoaderTargets.cmake")\ninclude("${CMAKE_CURRENT_LIST_DIR}/../OpenCLHeadersCpp/OpenCLHeadersCppTargets.cmake")'
 
     - name: "Consume (MSBuild SDK): Configure/Build/Test"
-      shell: pwsh
       run: |
         & cmake `
           -G '${{matrix.GEN}}' `
@@ -620,7 +591,6 @@ jobs:
         }
 
     - name: "Consume (Ninja-Multi-Config SDK): Configure/Build/Test"
-      shell: pwsh
       run: |
         $VER = switch ('${{matrix.VER}}') { `
           'v141' {'14.1'} `
@@ -650,11 +620,14 @@ jobs:
   macos:
     runs-on: macos-latest
     needs: format
+    defaults:
+      run:
+        shell: bash
     strategy:
       matrix:
         COMPILER:
-          - C_NAME: /usr/bin/gcc
-            CXX_NAME: /usr/bin/g++
+          - C_NAME: /usr/bin/clang
+            CXX_NAME: /usr/bin/clang++
           - C_NAME: /usr/local/bin/gcc-11
             CXX_NAME: /usr/local/bin/g++-11
           - C_NAME: /usr/local/bin/gcc-13
@@ -664,10 +637,7 @@ jobs:
         - Ninja Multi-Config
         CXXSTD: [11, 17]
         exclude:
-        - COMPILER:
-            C_NAME: /usr/bin/gcc
-            CXX_NAME: /usr/bin/g++
-          GEN: Ninja Multi-Config
+        # These entries are excluded, since XCode selects its own compiler
         - COMPILER:
             C_NAME: /usr/local/bin/gcc-11
             CXX_NAME: /usr/local/bin/g++-11
@@ -678,7 +648,7 @@ jobs:
           GEN: Xcode
     env:
       CC: ${{matrix.COMPILER.C_NAME}}
-      CCX: ${{matrix.COMPILER.CXX_NAME}}
+      CXX: ${{matrix.COMPILER.CXX_NAME}}
       CFLAGS: -Wall -Wextra -pedantic -Wno-format -Werror
       CXXFLAGS: -Wall -Wextra -pedantic -Wno-format -Werror
 
@@ -738,7 +708,6 @@ jobs:
         --parallel `sysctl -n hw.logicalcpu`
 
     - name: Configure
-      shell: bash
       run: cmake
         -G "${{matrix.GEN}}"
         -D BUILD_TESTING=ON
@@ -750,25 +719,21 @@ jobs:
         -B $GITHUB_WORKSPACE/build
 
     - name: Build
-      shell: bash
       run: |
         cmake --build $GITHUB_WORKSPACE/build --config Release --parallel `sysctl -n hw.logicalcpu`
         cmake --build $GITHUB_WORKSPACE/build --config Debug --parallel `sysctl -n hw.logicalcpu`
 
     - name: Test
       working-directory: ${{runner.workspace}}/OpenCL-CLHPP/build
-      shell: bash
       run: |
         ctest -C Release --output-on-failure --parallel `sysctl -n hw.logicalcpu`
         ctest -C Debug --output-on-failure --parallel `sysctl -n hw.logicalcpu`
 
     - name: Test install
-      shell: bash
       run: |
         cmake --build $GITHUB_WORKSPACE/build --config Release --target install
 
     - name: Consume (install)
-      shell: bash
       run: cmake
         -G "${{matrix.GEN}}"
         -D CMAKE_CXX_STANDARD=${{matrix.CXXSTD}}
@@ -781,14 +746,12 @@ jobs:
         cmake --build $GITHUB_WORKSPACE/build_install --config Debug --parallel `sysctl -n hw.logicalcpu` `if [[ "${{matrix.GEN}}" == "Xcode" ]]; then echo "-- -quiet"; fi;`
 
     - name: Test pkg-config
-      shell: bash
       run: |
         if [[ ! `which pkg-config` ]]; then brew install pkg-config; fi;
         export PKG_CONFIG_PATH=$GITHUB_WORKSPACE/install/share/pkgconfig:$GITHUB_WORKSPACE/external/OpenCL-Headers/install/share/pkgconfig:$GITHUB_WORKSPACE/external/OpenCL-ICD-Loader/install/lib/pkgconfig
         pkg-config OpenCL-CLHPP --cflags | grep -q "\-I$GITHUB_WORKSPACE/install/include"
 
     - name: Test pkg-config dependency
-      shell: bash
       run: |
         if [[ ! `which pkg-config` ]]; then brew install pkg-config; fi;
         export PKG_CONFIG_PATH=$GITHUB_WORKSPACE/install/share/pkgconfig:$GITHUB_WORKSPACE/external/OpenCL-Headers/install/share/pkgconfig:$GITHUB_WORKSPACE/external/OpenCL-ICD-Loader/install/lib/pkgconfig
@@ -797,6 +760,9 @@ jobs:
   android:
     runs-on: ubuntu-latest
     needs: format
+    defaults:
+      run:
+        shell: bash
     strategy:
       matrix:
         ABI:
@@ -830,7 +796,6 @@ jobs:
         path: external/OpenCL-ICD-Loader
 
     - name: Configure & install OpenCL-Headers
-      shell: bash
       run: cmake
         -G "Unix Makefiles"
         -D CMAKE_BUILD_TYPE=${{matrix.CONFIG}}
@@ -865,7 +830,6 @@ jobs:
         -j`nproc`
 
     - name: Configure
-      shell: bash
       run: cmake
         -G "Unix Makefiles"
         -D BUILD_TESTING=ON
@@ -880,5 +844,4 @@ jobs:
         -B $GITHUB_WORKSPACE/build
 
     - name: Build
-      shell: bash
       run: cmake --build $GITHUB_WORKSPACE/build -j `nproc`

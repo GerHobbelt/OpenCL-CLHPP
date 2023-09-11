@@ -3833,7 +3833,6 @@ static cl_int clGetSemaphoreInfoKHR_testSemaphoreGetContext(
     size_t param_value_size, void *param_value, size_t *param_value_size_ret,
     int /*num_calls*/)
 {
-    (void) num_calls;
     TEST_ASSERT_EQUAL_PTR(semaphorePool[0](), sema_object);
     TEST_ASSERT_EQUAL_HEX(CL_SEMAPHORE_CONTEXT_KHR, param_name);
     TEST_ASSERT(param_value == nullptr
@@ -3866,7 +3865,6 @@ static cl_int clGetSemaphoreInfoKHR_testSemaphoreGetReferenceCount(
     size_t param_value_size, void *param_value, size_t *param_value_size_ret,
     int /*num_calls*/)
 {
-    (void) num_calls;
     TEST_ASSERT_EQUAL_PTR(semaphorePool[0](), sema_object);
     TEST_ASSERT_EQUAL_HEX(CL_SEMAPHORE_REFERENCE_COUNT_KHR, param_name);
     TEST_ASSERT(param_value == nullptr || param_value_size >= sizeof(cl_uint));
@@ -3933,7 +3931,6 @@ static cl_int clGetSemaphoreInfoKHR_testSemaphoreGetType(
     size_t param_value_size, void *param_value, size_t *param_value_size_ret,
     int /*num_calls*/)
 {
-    (void) num_calls;
     TEST_ASSERT_EQUAL_PTR(semaphorePool[0](), sema_object);
     TEST_ASSERT_EQUAL_HEX(CL_SEMAPHORE_TYPE_KHR, param_name);
     TEST_ASSERT(param_value == nullptr
@@ -3964,7 +3961,6 @@ static cl_int clGetSemaphoreInfoKHR_testSemaphoreGetPayload(
     size_t param_value_size, void *param_value, size_t *param_value_size_ret,
     int /*num_calls*/)
 {
-    (void) num_calls;
     TEST_ASSERT_EQUAL_PTR(semaphorePool[0](), sema_object);
     TEST_ASSERT_EQUAL_HEX(CL_SEMAPHORE_PAYLOAD_KHR, param_name);
     TEST_ASSERT(param_value == nullptr
@@ -4081,7 +4077,7 @@ static cl_int clGetSemaphoreHandleForTypeKHR_GetHandles(
     void *handle_ptr, size_t *handle_size_ret, int /*num_calls*/)
 {
     (void) sema_object;
-    (void) device;
+    (void)device;
 
     switch (handle_type) {
 #if defined(cl_khr_external_semaphore_dx_fence)
