@@ -3834,7 +3834,6 @@ static cl_int clGetSemaphoreInfoKHR_testSemaphoreGetContext(
     size_t param_value_size, void *param_value, size_t *param_value_size_ret,
     int /*num_calls*/)
 {
-    (void) num_calls;
     TEST_ASSERT_EQUAL_PTR(semaphorePool[0](), sema_object);
     TEST_ASSERT_EQUAL_HEX(CL_SEMAPHORE_CONTEXT_KHR, param_name);
     TEST_ASSERT(param_value == nullptr
@@ -3867,7 +3866,6 @@ static cl_int clGetSemaphoreInfoKHR_testSemaphoreGetReferenceCount(
     size_t param_value_size, void *param_value, size_t *param_value_size_ret,
     int /*num_calls*/)
 {
-    (void) num_calls;
     TEST_ASSERT_EQUAL_PTR(semaphorePool[0](), sema_object);
     TEST_ASSERT_EQUAL_HEX(CL_SEMAPHORE_REFERENCE_COUNT_KHR, param_name);
     TEST_ASSERT(param_value == nullptr || param_value_size >= sizeof(cl_uint));
@@ -3934,7 +3932,6 @@ static cl_int clGetSemaphoreInfoKHR_testSemaphoreGetType(
     size_t param_value_size, void *param_value, size_t *param_value_size_ret,
     int /*num_calls*/)
 {
-    (void) num_calls;
     TEST_ASSERT_EQUAL_PTR(semaphorePool[0](), sema_object);
     TEST_ASSERT_EQUAL_HEX(CL_SEMAPHORE_TYPE_KHR, param_name);
     TEST_ASSERT(param_value == nullptr
@@ -3965,7 +3962,6 @@ static cl_int clGetSemaphoreInfoKHR_testSemaphoreGetPayload(
     size_t param_value_size, void *param_value, size_t *param_value_size_ret,
     int /*num_calls*/)
 {
-    (void) num_calls;
     TEST_ASSERT_EQUAL_PTR(semaphorePool[0](), sema_object);
     TEST_ASSERT_EQUAL_HEX(CL_SEMAPHORE_PAYLOAD_KHR, param_name);
     TEST_ASSERT(param_value == nullptr
@@ -4082,7 +4078,7 @@ static cl_int clGetSemaphoreHandleForTypeKHR_GetHandles(
     void *handle_ptr, size_t *handle_size_ret, int /*num_calls*/)
 {
     (void) sema_object;
-    (void) device;
+    (void)device;
 
     switch (handle_type) {
 #if defined(cl_khr_external_semaphore_dx_fence)
@@ -4461,7 +4457,7 @@ static cl_mem clCreateFromGLBuffer_testgetObjectInfo(cl_context context,
                                                      cl_mem_flags flags,
                                                      cl_GLuint bufobj,
                                                      cl_int *errcode_ret,
-                                                     int num_calls)
+                                                     int /*num_calls*/)
 {
     TEST_ASSERT_EQUAL(0, bufobj);
     TEST_ASSERT_EQUAL_PTR(make_context(0), context);
@@ -4474,7 +4470,7 @@ static cl_mem clCreateFromGLBuffer_testgetObjectInfo(cl_context context,
 static cl_int clGetGLObjectInfo_testgetObjectInfo(cl_mem memobj,
                                                   cl_gl_object_type *type,
                                                   cl_GLuint *gl_object_name,
-                                                  int num)
+                                                  int /*num*/)
 {
     TEST_ASSERT_EQUAL(memobj, make_mem(0));
     *type = CL_GL_OBJECT_BUFFER;
@@ -4483,11 +4479,11 @@ static cl_int clGetGLObjectInfo_testgetObjectInfo(cl_mem memobj,
     return CL_SUCCESS;
 }
 
-void testgetObjectInfo() {
+void testgetObjectInfo(void)
+{
     cl_mem_flags flags = 0;
     cl_int err = 0;
     cl_GLuint bufobj = 0;
-    cl_mem memobj = make_mem(0);
     cl_gl_object_type type = CL_GL_OBJECT_TEXTURE2D_ARRAY;
     clGetGLObjectInfo_StubWithCallback(clGetGLObjectInfo_testgetObjectInfo);
     clCreateFromGLBuffer_StubWithCallback(
